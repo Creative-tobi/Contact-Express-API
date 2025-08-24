@@ -10,10 +10,10 @@ const {
 
 const router = express.Router();
 
+router.get("/contacts/call", searchContact);
 router.post("/contacts", addContact);
 router.put("/contacts/:id", updateContact);
 router.get("/contacts", getContact);
 router.get("/contacts/:id", getContactByID);
-router.get("/contacts/search", searchContact);
 router.delete("/contacts/:id", deleteContact);
 module.exports = router

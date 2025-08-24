@@ -25,24 +25,25 @@ async function updateContact(req, res) {
     const { name, email, phone } = req.body;
     const updateID = req.params.id;
 
-    const updatedContact = await Contact.findByIdAndUpdate(
-      updateID,
-      { name, email, phone, updatedAt: new Date().toISOString() },
-      { new: true }
-    );
-
-    if (!updatedContact) {
+    const contact = await Contact.findById(updateID);
+    if (!contact) {
       return res.status(404).send({ message: "Contact not found" });
     }
 
-    res
-      .status(200)
-      .send({ message: "Contact updated successfully", updatedContact });
+    if (name) contact.name = name;
+    if (email) contact.email = email;
+    if (phone) contact.phone = phone;
+    contact.updatedAt = new Date();
+
+    await contact.save();
+
+    res.status(200).send({ message: "Contact updated successfully", contact });
   } catch (error) {
-    console.error(error);
+    console.error("Error in updateContact:", error.message);
     res.status(500).send({ message: "internal server error" });
   }
 }
+
 
 // getting all contact
 async function getContact(req, res) {
@@ -79,11 +80,13 @@ async function searchContact(req, res) {
   try {
     const { name, email } = req.query;
 
+    console.log("Query received:", req.query);
+
     let contactName = null;
     if (name) {
-      contactName = await Contact.findOne({ name });
+      contactName = await Contact.findOne({ name: name });
     } else if (email) {
-      contactName = await Contact.findOne({ email });
+      contactName = await Contact.findOne({ email: email });
     }
 
     if (!contactName) {
@@ -92,10 +95,13 @@ async function searchContact(req, res) {
 
     res.status(200).send({ message: "Contact data fetched", contactName });
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: "internal server error" });
+    console.error("Search error:", error);
+    res
+      .status(500)
+      .send({ message: "internal server error", error: error.message });
   }
 }
+
 
 //deleting
 async function deleteContact(req, res) {
